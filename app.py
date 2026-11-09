@@ -1,0 +1,55 @@
+from flask import Flask
+from flask_restful import Resource, Api
+from resources.hotel import Hoteis, Hotel
+from resources.user import User, UserRegister, UserLoguin, UserLogout
+from con_sql import bd
+from flask_jwt_extended import JWTManager
+from blocklist import BLOCKLIST 
+
+
+# Variavel representar a minha aplicação
+app = Flask(__name__)
+jwt = JWTManager(app)
+api = Api(app)
+
+
+
+
+
+
+#Configurações
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///hoteis.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["JWT_SCRET_KEY"] = "a_minha_palavra_secreta_para_aminha_api_vai_ser_forte"
+app.config["JWT_BLACKLIST_ENABLED"] = True
+
+
+@jwt.token_in_blocklist_loader
+def verificar_blocklist(jwt_header,jwt_playoad):
+    jti =  jwt_playoad["jti"]
+    return jti in BLOCKLIST
+
+
+@jwt.revoked_token_loader
+def token_revogado(jwt_header,jwt_payload):
+    return { "message": "You have no acess to this resource. Login please! "}                                                                                                                                                                                        
+
+
+
+
+# Rotas
+api.add_resource(Hoteis, "/hoteis")
+api.add_resource(Hotel, "/hoteis/<string:id_hotel>")
+api.add_resource(User, "/users/<string:username>")
+api.add_resource(UserRegister, "/registar")
+api.add_resource(UserLoguin, "/loguin")
+api.add_resource(UserLogout, "/logout")
+
+
+
+
+if __name__ == "__main__":
+    bd.init_app(app)
+    with app.app_context():
+        bd.create_all()
+    app.run(debug=True)

@@ -1,0 +1,35 @@
+from con_sql import bd
+
+class HotelModel(bd.Model):
+    __tablename__ = "hoteis"
+    hotel_id = bd.Column(bd.String, primary_key=True, autoincrement=True)
+    username = bd.Column (bd.String(40))
+    password = bd.Column (bd.String(40))
+    
+
+    # Construtor da classe 
+    def __init__(self,username,password):
+        self.hotel_id = username
+        self.nome = password
+
+    def json(self):
+        return{
+            "user_id": self.user_id,
+            "username" : self.username,
+            "password" : self.password,
+        }
+
+    @classmethod
+    def find_hotel(cls,username):
+        user= cls.query.filter_by(username=username).first()
+        if user:
+            return user
+        return None
+    
+    def save_user(self):
+        bd.session.add(self)
+        bd.session.commit()
+        
+    def delete_user(self):
+        bd.session.delete(self)
+        bd.session.commit()
